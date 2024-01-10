@@ -35,13 +35,18 @@ class QuadTree:    # QuadTree class with boundary, capacity, points, and divided
     def insert(self, point):    # point is a Point object with x and y attributes and we are inserting points into the quadtree.
         # if the point is in the range of current quadtree.
         if not self.boundary.containsPoint(point):
+            print('point is out of boundary.')
             return False
 
         # if has not reached capacity, add the point.
         if len(self.points) < self.capacity:    # if there is space in the quadtree, add the point. Points is less than capacity.
+            print('capacity: ', self.capacity)
+            print('Lenth of points: ', len(self.points))
             self.points.append(point)
+            print('point added in the quadtree.')
             return True
         else:
+            # Recursive insertion.
             if not self.divided:      # if the quadtree is not divided.
                 self.subdivide()      # subdivide the quadtree.
 
