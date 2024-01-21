@@ -7,10 +7,11 @@ class Point:
         print('point Construction Initialisation __init__(self, x, y).')
 
 class Rectangle:
-    def __init__(self, center, width, height):
+    def __init__(self, center, width, height, rectangle_id=None):
         self.center = center # It contain x and y value of point
         self.width = width
         self.height = height
+        self.rectangle_id = rectangle_id
         # We need four side of rectangle with respect to orignal x and y axis. 
         self.east = center.x + width
         self.west = center.x - width
@@ -30,12 +31,21 @@ class Rectangle:
         ax.plot([x1,x2,x2,x1,x1], [y1,y1,y2,y2,y1], c=c, lw=lw , **kwargs)
 
 class QuadTree: # It is ractangle pluse capacity
-    def __init__(self, boundary, capacity = 4): 
+
+    rectangle_counter = 1  # Class-level counter for rectangle_id
+
+    def __init__(self, boundary, capacity = 4, rectangle_id=None): # Set default capacity is 4. Must need to change withrespect to datasets.
         self.boundary = boundary # initialising the boundaries of Quadtree.
         self.capacity = capacity # initialising the limite of the points in each ractangle. if it will cross thresold we will create new quadtree.
-
         self.points = [] # Creating a list to store a points.
         self.divided = False # Boolean variable to tell us is quadtree is divided or not?
+        self.children_ids = []  # List to store rectangle_id values of child nodes
+        if rectangle_id is None:
+            self.rectangle_id = QuadTree.rectangle_counter
+            QuadTree.rectangle_counter += 1
+        else:
+            self.rectangle_id = rectangle_id
+        # self.rectangle_id = rectangle_id  # Assign a unique identifier to the rectangle
         print('QuadTree Construction Initialisation __init__(self, boundary, capacity = 4)')
 
     def insert(self, point):
@@ -82,19 +92,51 @@ class QuadTree: # It is ractangle pluse capacity
         new_height = self.boundary.height / 2 # Half height of subdivided rectangle
 
         # Initialise SubRectangle 
-        nw = Rectangle(Point(center_x - new_width, center_y - new_height), new_width, new_height) # North West Side
-        self.nw = QuadTree(nw)
+        # nw = Rectangle(Point(center_x - new_width, center_y - new_height), new_width, new_height, rectangle_id=self.rectangle_id) # North West Side
+        # self.nw = QuadTree(nw, self.capacity, rectangle_id=self.rectangle_id)
 
-        ne = Rectangle(Point(center_x + new_width, center_y - new_height), new_width, new_height) # North East Side
-        self.ne  = QuadTree(ne)
+        # ne = Rectangle(Point(center_x + new_width, center_y - new_height), new_width, new_height, rectangle_id=self.rectangle_id) # North East Side
+        # self.ne  = QuadTree(ne, self.capacity, rectangle_id=self.rectangle_id)
 
-        sw = Rectangle(Point(center_x - new_width, center_y + new_height), new_width, new_height) # South West Side
-        self.sw = QuadTree(sw)
+        # sw = Rectangle(Point(center_x - new_width, center_y + new_height), new_width, new_height, rectangle_id=self.rectangle_id) # South West Side
+        # self.sw = QuadTree(sw, self.capacity, rectangle_id=self.rectangle_id)
 
-        se = Rectangle(Point(center_x + new_width, center_y + new_height), new_width, new_height) # South East Side
-        self.se = QuadTree(se)
+        # se = Rectangle(Point(center_x + new_width, center_y + new_height), new_width, new_height, rectangle_id=self.rectangle_id) # South East Side
+        # self.se = QuadTree(se, self.capacity, rectangle_id=self.rectangle_id)
+
+        # Use the parent's rectangle_id as a prefix for child node identifiers
+        
+        # Use the parent's rectangle_id as a prefix for child node identifiers
+        self.nw = QuadTree(Rectangle(Point(center_x - new_width, center_y - new_height), new_width, new_height, rectangle_id=self.rectangle_id), self.capacity)
+        self.nw.rectangle_id = f"{self.rectangle_id}_nw"
+        self.children_ids.append(self.nw.rectangle_id)
+
+        self.ne = QuadTree(Rectangle(Point(center_x + new_width, center_y - new_height), new_width, new_height, rectangle_id=self.rectangle_id), self.capacity)
+        self.ne.rectangle_id = f"{self.rectangle_id}_ne"
+        self.children_ids.append(self.ne.rectangle_id)
+
+        self.sw = QuadTree(Rectangle(Point(center_x - new_width, center_y + new_height), new_width, new_height, rectangle_id=self.rectangle_id), self.capacity)
+        self.sw.rectangle_id = f"{self.rectangle_id}_sw"
+        self.children_ids.append(self.sw.rectangle_id)
+
+        self.se = QuadTree(Rectangle(Point(center_x + new_width, center_y + new_height), new_width, new_height, rectangle_id=self.rectangle_id), self.capacity)
+        self.se.rectangle_id = f"{self.rectangle_id}_se"
+        self.children_ids.append(self.se.rectangle_id)
 
         self.divided = True
+
+        # Increment the rectangle_counter for each child rectangle created during subdivision
+        self.nw.rectangle_id = QuadTree.rectangle_counter
+        #QuadTree.rectangle_counter += 1
+
+        self.ne.rectangle_id = QuadTree.rectangle_counter
+        #QuadTree.rectangle_counter += 1
+
+        self.sw.rectangle_id = QuadTree.rectangle_counter
+        #QuadTree.rectangle_counter += 1
+
+        self.se.rectangle_id = QuadTree.rectangle_counter
+        #QuadTree.rectangle_counter += 1
 
     # Calculate how many points are in quadtree including subtree
     def __len__(self):
@@ -114,3 +156,6 @@ class QuadTree: # It is ractangle pluse capacity
             self.sw.draw(ax)
             self.se.draw(ax)
         print('def draw(self, ax):')
+
+
+
